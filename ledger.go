@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -9,8 +19,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/hashing"
 	ledger_go "github.com/zondax/ledger-go"
 )
 
@@ -19,8 +27,8 @@ var _ Ledger = &ledger{}
 // Ledger interface for the ledger wrapper
 type Ledger interface {
 	Version() (version string, commit string, name string, err error)
-	Address(displayHRP string, addressIndex uint32) (ids.ShortID, error)
-	Addresses(numAddresses int) ([]ids.ShortID, error)
+	Address(displayHRP string, addressIndex uint32) (ShortID, error)
+	Addresses(numAddresses int) ([]ShortID, error)
 	SignHash(hash []byte, addressIndices []uint32) ([][]byte, error)
 	Disconnect() error
 }
@@ -127,14 +135,14 @@ func (l *ledger) Version() (version string, commit string, name string, err erro
 	return
 }
 
-// Address returns an Avalanche address as ids.ShortID, ledger ask confirmation showing
+// Address returns an Avalanche address as ShortID, ledger ask confirmation showing
 // addresss formatted with [displayHRP] (note [displayHRP] length is restricted to 4)
 //
 // On the P/X-Chain, accounts are derived on the path m/44'/9000'/0'/0/n
 // (where n is the address index).
-func (l *ledger) Address(displayHRP string, addressIndex uint32) (ids.ShortID, error) {
+func (l *ledger) Address(displayHRP string, addressIndex uint32) (ShortID, error) {
 	if len(displayHRP) != 4 {
-		return ids.ShortEmpty, fmt.Errorf("expected displayHRP len of 4, got %d", len(displayHRP))
+		return ShortEmpty, fmt.Errorf("expected displayHRP len of 4, got %d", len(displayHRP))
 	}
 	msgPK := []byte{
 		CLA,
@@ -144,7 +152,7 @@ func (l *ledger) Address(displayHRP string, addressIndex uint32) (ids.ShortID, e
 	}
 	pathBytes, err := bip32bytes(append(pathPrefix, addressIndex), 3)
 	if err != nil {
-		return ids.ShortEmpty, err
+		return ShortEmpty, err
 	}
 	data := append([]byte(displayHRP), pathBytes...)
 	msgPK = append(msgPK, byte(len(data)))
@@ -155,9 +163,9 @@ func (l *ledger) Address(displayHRP string, addressIndex uint32) (ids.ShortID, e
 		if strings.Contains(err.Error(), "[APDU_CODE_CONDITIONS_NOT_SATISFIED] Conditions of use not satisfied") {
 			err = ErrRejectedKeyProvide
 		}
-		return ids.ShortEmpty, err
+		return ShortEmpty, err
 	}
-	return ids.ToShortID(rawAddress)
+	return ToShortID(rawAddress)
 }
 
 func (l *ledger) getExtendedPublicKey() ([]byte, []byte, error) {
@@ -187,11 +195,11 @@ func (l *ledger) getExtendedPublicKey() ([]byte, []byte, error) {
 	return response[1 : 1+pkLen], response[chainCodeOffset : chainCodeOffset+chainCodeLength], nil
 }
 
-// Addresses returns the first [numAddresses] ledger addresses as []ids.ShortID
+// Addresses returns the first [numAddresses] ledger addresses as []ShortID
 //
 // On the P/X-Chain, accounts are derived on the path m/44'/9000'/0'/0/n
 // (where n is the address index).
-func (l *ledger) Addresses(numAddresses int) ([]ids.ShortID, error) {
+func (l *ledger) Addresses(numAddresses int) ([]ShortID, error) {
 	if len(l.pk) == 0 {
 		pk, chainCode, err := l.getExtendedPublicKey()
 		if err != nil {
@@ -201,13 +209,13 @@ func (l *ledger) Addresses(numAddresses int) ([]ids.ShortID, error) {
 		l.chainCode = chainCode
 	}
 
-	addrs := make([]ids.ShortID, numAddresses)
+	addrs := make([]ShortID, numAddresses)
 	for i := 0; i < numAddresses; i++ {
 		k, err := NewChild(l.pk, l.chainCode, uint32(i))
 		if err != nil {
 			return nil, err
 		}
-		shortAddr, err := ids.ToShortID(hashing.PubkeyBytesToAddress(k))
+		shortAddr, err := ToShortID(PubkeyBytesToAddress(k))
 		if err != nil {
 			return nil, err
 		}

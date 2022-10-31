@@ -6,8 +6,6 @@ package ledger
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ava-labs/avalanchego/utils/hashing"
 )
 
 // NOTE: You must have a physical ledger device to run this test
@@ -48,7 +46,7 @@ func TestLedger(t *testing.T) {
 	}
 
 	// Sign Hash
-	rawHash := hashing.ComputeHash256([]byte{0x1, 0x2, 0x3, 0x4})
+	rawHash := ComputeHash256([]byte{0x1, 0x2, 0x3, 0x4})
 	indices := []uint32{1, 3}
 	sigs, err := device.SignHash(rawHash, indices)
 	if err != nil {

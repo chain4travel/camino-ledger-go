@@ -1,4 +1,4 @@
-# avalanche-ledger-go
+# camino-ledger-go
 
 _Golang SDK for Using the [Avalanche Ledger App](https://github.com/obsidiansystems/ledger-app-avalanche)_
 
