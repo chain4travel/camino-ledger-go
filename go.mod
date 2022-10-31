@@ -1,4 +1,4 @@
-module github.com/chain4travel/camino-ledger-go
+module github.com/ava-labs/avalanche-ledger-go
 
 go 1.18
 

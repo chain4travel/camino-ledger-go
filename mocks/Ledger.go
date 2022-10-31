@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	ledger "github.com/chain4travel/camino-ledger-go"
+	ledger "github.com/ava-labs/avalanche-ledger-go"
 
 	mock "github.com/stretchr/testify/mock"
 )
